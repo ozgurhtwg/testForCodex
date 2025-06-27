@@ -1,4 +1,17 @@
 const entries = [];
+
+window.addEventListener('load', async () => {
+    try {
+        const res = await fetch('http://localhost:3000/entries');
+        if (res.ok) {
+            const saved = await res.json();
+            saved.forEach(e => entries.push(e));
+            updateTable();
+        }
+    } catch (err) {
+        console.error('Could not load saved entries', err);
+    }
+});
 const totals = {
     weight: 0,
     calories: 0,
@@ -34,6 +47,11 @@ document.getElementById('food-form').addEventListener('submit', async (e) => {
                 carbs: carbs * factor
             };
             entries.push(entry);
+            fetch('http://localhost:3000/entries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entry)
+            }).catch(err => console.error('Failed to save entry', err));
             updateTable();
             document.getElementById('food-form').reset();
         } else {
