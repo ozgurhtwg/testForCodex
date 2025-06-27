@@ -25,6 +25,22 @@ form {
     justify-content: center;
 }
 
+#auth {
+    max-width: 400px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+#auth form {
+    flex-direction: column;
+}
+
+#auth input {
+    flex: none;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
 input[type="text"], input[type="number"] {
     padding: 5px;
     flex: 1 1 150px;

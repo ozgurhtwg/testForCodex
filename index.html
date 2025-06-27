@@ -7,7 +7,23 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <div id="auth">
+        <h1>Login</h1>
+        <form id="login-form">
+            <input type="text" id="login-user" placeholder="Benutzername" required>
+            <input type="password" id="login-pass" placeholder="Passwort" required>
+            <button type="submit">Einloggen</button>
+        </form>
+
+        <h2>Registrieren</h2>
+        <form id="register-form">
+            <input type="text" id="reg-user" placeholder="Benutzername" required>
+            <input type="password" id="reg-pass" placeholder="Passwort" required>
+            <button type="submit">Registrieren</button>
+        </form>
+    </div>
+
+    <div class="container" id="app" style="display:none">
         <h1>Ernährungstracker</h1>
         <form id="food-form">
             <label for="food">Lebensmittel:</label>

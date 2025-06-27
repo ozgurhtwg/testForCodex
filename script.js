@@ -1,3 +1,4 @@
+let db;
 const entries = [];
 const totals = {
     weight: 0,
@@ -6,6 +7,89 @@ const totals = {
     fat: 0,
     carbs: 0
 };
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        if (db) return resolve(db);
+        const request = indexedDB.open('nutritionApp', 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore('users', { keyPath: 'username' });
+        };
+        request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+async function hashPassword(pw) {
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function registerUser(username, password) {
+    await openDB();
+    const hashed = await hashPassword(password);
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('users', 'readwrite');
+        tx.objectStore('users').add({ username, password: hashed }).onsuccess = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function loginUser(username, password) {
+    await openDB();
+    const hashed = await hashPassword(password);
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('users', 'readonly');
+        const req = tx.objectStore('users').get(username);
+        req.onsuccess = () => {
+            const user = req.result;
+            resolve(user && user.password === hashed);
+        };
+        req.onerror = () => reject(req.error);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('loggedIn') === 'true') {
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+    }
+});
+
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = document.getElementById('reg-user').value.trim();
+    const pass = document.getElementById('reg-pass').value;
+    if (!user || !pass) return;
+    try {
+        await registerUser(user, pass);
+        alert('Registrierung erfolgreich');
+        e.target.reset();
+    } catch {
+        alert('Fehler bei der Registrierung');
+    }
+});
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (!user || !pass) return;
+    try {
+        const ok = await loginUser(user, pass);
+        if (ok) {
+            sessionStorage.setItem('loggedIn', 'true');
+            document.getElementById('auth').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        } else {
+            alert('Ungültige Anmeldedaten');
+        }
+    } catch {
+        alert('Fehler beim Login');
+    }
+});
 
 document.getElementById('food-form').addEventListener('submit', async (e) => {
     e.preventDefault();
